@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unknown Signal</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #030303;
+}
+
+/* =========================
+   CRT STATIC
+========================= */
+
+.screen {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #111;
+}
+
+.static {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  opacity: 0.75;
+  filter: grayscale(1) contrast(240%);
+
+  animation:
+    staticMove 0.11s steps(3) infinite,
+    staticFlicker 0.08s steps(2) infinite;
+}
+
+@keyframes staticMove {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-2%, 1%); }
+  50%  { transform: translate(1%, -2%); }
+  75%  { transform: translate(3%, 2%); }
+  100% { transform: translate(-1%, -1%); }
+}
+
+@keyframes staticFlicker {
+  0%   { opacity: 0.55; }
+  50%  { opacity: 0.9; }
+  100% { opacity: 0.65; }
+}
+
+.scanlines {
+  position: absolute;
+  inset: 0;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.34) 0px,
+      rgba(0,0,0,0.34) 2px,
+      transparent 2px,
+      transparent 5px
+    );
+
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.interference {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 8px;
+
+  background: rgba(255,255,255,0.18);
+  box-shadow: 0 0 18px rgba(255,255,255,0.25);
+
+  animation: interference 4s linear infinite;
+
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+@keyframes interference {
+  from { top: -10%; }
+  to { top: 110%; }
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 30%,
+      rgba(0,0,0,0.28) 65%,
+      rgba(0,0,0,0.9) 100%
+    );
+
+  pointer-events: none;
+}
+
+.flicker {
+  position: absolute;
+  inset: 0;
+
+  background: white;
+  opacity: 0;
+
+  animation: screenFlicker 0.17s steps(2) infinite;
+
+  pointer-events: none;
+}
+
+@keyframes screenFlicker {
+  0%, 92%, 100% { opacity: 0; }
+  93% { opacity: 0.07; }
+  96% { opacity: 0; }
+}
+
+/* =========================
+   WARNING BUTTON
+========================= */
+
+.center {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 10;
+}
+
+button {
+  width: 125px;
+  height: 125px;
+
+  border-radius: 50%;
+  border: 4px solid #260000;
+
+  background:
+    radial-gradient(
+      circle at 35% 25%,
+      #ff5555 0%,
+      #d71919 25%,
+      #8c0000 55%,
+      #3d0000 100%
+    );
+
+  color: white;
+  font-size: 55px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  box-shadow:
+    inset 8px 8px 15px rgba(255,255,255,0.18),
+    inset -10px -12px 20px rgba(0,0,0,0.7),
+    0 0 12px rgba(120,0,0,0.6),
+    0 8px 25px rgba(0,0,0,0.8);
+
+  animation: warningFlicker 3s infinite;
+
+  transition: transform 0.1s;
+}
+
+button:hover {
+  transform: scale(1.06);
+}
+
+button:active {
+  transform: scale(0.91);
+}
+
+@keyframes warningFlicker {
+  0%, 88%, 100% { opacity: 0.9; }
+  90% { opacity: 0.5; }
+  92% { opacity: 1; }
+}
+
+/* =========================
+   WATCH OUT
+========================= */
+
+#warningText {
+  position: fixed;
+
+  left: 50%;
+  top: calc(50% - 105px);
+
+  transform: translateX(-50%);
+
+  z-index: 11;
+
+  color: #e7e7e7;
+
+  font-family: monospace;
+  font-size: 17px;
+  font-weight: bold;
+
+  letter-spacing: 4px;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  text-shadow:
+    0 0 5px rgba(255,255,255,0.5),
+    0 0 12px rgba(255,0,0,0.25);
+}
+
+#warningText.visible {
+  animation: warningTextAppear 3.5s infinite;
+}
+
+@keyframes warningTextAppear {
+  0%, 48% {
+    opacity: 0;
+  }
+
+  49% {
+    opacity: 0.25;
+  }
+
+  50% {
+    opacity: 0.75;
+  }
+
+  52% {
+    opacity: 0.15;
+  }
+
+  54% {
+    opacity: 0.65;
+  }
+
+  57%, 100% {
+    opacity: 0;
+  }
+}
+
+/* =========================
+   EMOJI
+========================= */
+
+#emoji {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 20;
+
+  pointer-events: none;
+
+  font-size: 150px;
+
+  opacity: 0;
+
+  text-shadow:
+    0 0 10px white,
+    0 0 35px rgba(255,255,255,0.35);
+}
+
+#emoji.show {
+  animation: relicReveal 1.1s steps(8) forwards;
+}
+
+@keyframes relicReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+    filter: blur(10px);
+  }
+
+  15% { opacity: 1; }
+  25% { opacity: 0.2; }
+
+  35% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  50% { opacity: 0.6; }
+
+  70% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* =========================
+   MONSTER
+========================= */
+
+#monster {
+  position: fixed;
+
+  right: 18px;
+  bottom: 12px;
+
+  width: 105px;
+  height: 125px;
+
+  z-index: 8;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transform-origin: bottom right;
+  transform: scale(0.35);
+
+  filter:
+    contrast(160%)
+    brightness(45%)
+    blur(0.3px)
+    drop-shadow(0 0 12px rgba(0,0,0,0.9));
+}
+
+.monster-body {
+  position: absolute;
+
+  right: 8px;
+  bottom: 0;
+
+  width: 82px;
+  height: 105px;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 35%,
+      #252525 0%,
+      #090909 55%,
+      #000 100%
+    );
+
+  border-radius:
+    48% 52% 35% 65% /
+    35% 42% 58% 65%;
+}
+
+.monster-head {
+  position: absolute;
+
+  right: 10px;
+  top: -23px;
+
+  width: 70px;
+  height: 68px;
+
+  background: #070707;
+
+  border-radius:
+    45% 55% 42% 58% /
+    50% 48% 52% 50%;
+
+  transform: rotate(-7deg);
+}
+
+.eye {
+  position: absolute;
+
+  width: 8px;
+  height: 13px;
+
+  background: #ddd;
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 6px rgba(255,255,255,0.7);
+}
+
+.eye.left {
+  left: 19px;
+  top: 24px;
+}
+
+.eye.right {
+  right: 17px;
+  top: 22px;
+}
+
+.mouth {
+  position: absolute;
+
+  left: 19px;
+  top: 43px;
+
+  width: 38px;
+  height: 12px;
+
+  background: #000;
+
+  border-radius: 0 0 50% 50%;
+}
+
+.finger {
+  position: absolute;
+
+  width: 7px;
+  height: 48px;
+
+  background: #050505;
+
+  border-radius: 100%;
+
+  transform-origin: top;
+}
+
+.finger.one {
+  right: 4px;
+  bottom: 32px;
+  transform: rotate(-22deg);
+}
+
+.finger.two {
+  right: -2px;
+  bottom: 27px;
+  height: 55px;
+  transform: rotate(-4deg);
+}
+
+.finger.three {
+  right: 3px;
+  bottom: 25px;
+  height: 50px;
+  transform: rotate(14deg);
+}
+
+#monster.visible {
+  animation:
+    monsterAppear 1.8s steps(7) forwards,
+    monsterBreathing 4s ease-in-out infinite 1.8s;
+}
+
+@keyframes monsterAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) translateX(15px);
+    filter: contrast(200%) brightness(0);
+  }
+
+  25% { opacity: 0.3; }
+  40% { opacity: 0.05; }
+  55% { opacity: 0.65; }
+  70% { opacity: 0.25; }
+
+  100% {
+    opacity: 0.92;
+    transform: scale(var(--monster-scale)) translateX(0);
+  }
+}
+
+@keyframes monsterBreathing {
+  0%, 100% {
+    margin-bottom: 0;
+  }
+
+  50% {
+    margin-bottom: 3px;
+  }
+}
+
+/* =========================
+   JUMPSCARE
+========================= */
+
+#jumpscare {
+  position: fixed;
+  inset: 0;
+
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #000;
+
+  opacity: 0;
+  visibility: hidden;
+
+  pointer-events: none;
+}
+
+#jumpscareMonster {
+  position: relative;
+
+  width: 65vw;
+  height: 80vh;
+
+  max-width: 600px;
+
+  transform: scale(0.2);
+
+  filter:
+    contrast(180%)
+    brightness(55%);
+}
+
+#jumpscareMonster .monster-body {
+  width: 75%;
+  height: 75%;
+
+  right: 12%;
+  bottom: 0;
+}
+
+#jumpscareMonster .monster-head {
+  width: 60%;
+  height: 55%;
+
+  right: 20%;
+  top: -4%;
+}
+
+#jumpscareMonster .eye {
+  width: 13%;
+  height: 18%;
+}
+
+#jumpscareMonster .eye.left {
+  left: 20%;
+  top: 27%;
+}
+
+#jumpscareMonster .eye.right {
+  right: 18%;
+  top: 25%;
+}
+
+#jumpscareMonster .mouth {
+  left: 20%;
+  top: 50%;
+  width: 58%;
+  height: 17%;
+}
+
+#jumpscareMonster .finger {
+  width: 6%;
+  height: 55%;
+}
+
+#jumpscareMonster .finger.one {
+  right: 3%;
+  bottom: 25%;
+}
+
+#jumpscareMonster .finger.two {
+  right: -2%;
+  bottom: 20%;
+}
+
+#jumpscareMonster .finger.three {
+  right: 3%;
+  bottom: 18%;
+}
+
+#jumpscare.active {
+  visibility: visible;
+  animation: jumpscareFlash 1.5s forwards;
+}
+
+#jumpscare.active #jumpscareMonster {
+  animation: jumpscareMonster 1.5s forwards;
+}
+
+@keyframes jumpscareFlash {
+  0% {
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 1;
+    background: #fff;
+  }
+
+  8% {
+    background: #000;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    background: #000;
+  }
+}
+
+@keyframes jumpscareMonster {
+  0% {
+    transform: scale(0.15);
+  }
+
+  8% {
+    transform: scale(1.15);
+  }
+
+  14% {
+    transform: scale(0.95);
+  }
+
+  22% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* =========================
+   DISTORTION
+========================= */
+
+.distort {
+  animation: distortion 0.22s steps(4);
+}
+
+@keyframes distortion {
+  0%   { transform: translate(0); }
+  25%  { transform: translate(-4px, 2px); }
+  50%  { transform: translate(5px, -2px); }
+  75%  { transform: translate(-2px, -3px); }
+  100% { transform: translate(0); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="screen" id="screen">
+  <div class="static"></div>
+  <div class="scanlines"></div>
+  <div class="interference"></div>
+  <div class="flicker"></div>
+  <div class="vignette"></div>
+</div>
+
+<div id="warningText">WATCH OUT</div>
+
+<div class="center">
+  <button id="warningButton" aria-label="Warning">⚠️</button>
+</div>
+
+<div id="emoji"></div>
+
+<div id="monster">
+  <div class="monster-body"></div>
+
+  <div class="monster-head">
+    <div class="eye left"></div>
+    <div class="eye right"></div>
+    <div class="mouth"></div>
+  </div>
+
+  <div class="finger one"></div>
+  <div class="finger two"></div>
+  <div class="finger three"></div>
+</div>
+
+<!-- Full-screen jumpscare -->
+<div id="jumpscare">
+  <div id="jumpscareMonster">
+
+    <div class="monster-body"></div>
+
+    <div class="monster-head">
+      <div class="eye left"></div>
+      <div class="eye right"></div>
+      <div class="mouth"></div>
+    </div>
+
+    <div class="finger one"></div>
+    <div class="finger two"></div>
+    <div class="finger three"></div>
+
+  </div>
+</div>
+
+<script>
+
+const emojis = [
+  "❗️",
+  "❓",
+  "⭕️",
+  "⁉️",
+  "❌",
+  "‼️",
+  "✔️",
+  "📺",
+  "📺"
+];
+
+const emojiElement = document.getElementById("emoji");
+const monster = document.getElementById("monster");
+const jumpscare = document.getElementById("jumpscare");
+const screen = document.getElementById("screen");
+const warningText = document.getElementById("warningText");
+const button = document.getElementById("warningButton");
+
+let monsterFound = false;
+let monsterScale = 0.35;
+let jumpscareTriggered = false;
+
+/*
+  Increased from 1.5% to 5%.
+
+  Each press has a 5% chance of
+  awakening the creature.
+*/
+const MONSTER_CHANCE = 0.50;
+
+/*
+  The monster reaches this size,
+  then the next growth triggers
+  the jumpscare.
+*/
+const JUMPSCARE_SIZE = 1.55;
+
+button.addEventListener("click", pressButton);
+
+function pressButton() {
+
+  if (jumpscareTriggered) return;
+
+  /* Random relic symbol */
+
+  const random =
+    emojis[Math.floor(Math.random() * emojis.length)];
+
+  emojiElement.classList.remove("show");
+
+  void emojiElement.offsetWidth;
+
+  emojiElement.textContent = random;
+  emojiElement.classList.add("show");
+
+
+  /* Try to awaken the monster */
+
+  if (!monsterFound && Math.random() < MONSTER_CHANCE) {
+
+    monsterFound = true;
+
+    monsterScale = 0.35;
+
+    monster.style.setProperty(
+      "--monster-scale",
+      monsterScale
+    );
+
+    monster.classList.add("visible");
+
+    /*
+      WATCH OUT begins appearing
+      once the creature exists.
+    */
+
+    warningText.classList.add("visible");
+
+    screen.classList.add("creepy");
+    distortScreen();
+  }
+
+
+  /* Monster growth */
+
+  if (monsterFound) {
+
+    monsterScale += 0.025;
+
+    monster.style.setProperty(
+      "--monster-scale",
+      monsterScale
+    );
+
+    /*
+      The closer it gets to the
+      jumpscare, the more often
+      the screen glitches.
+    */
+
+    if (monsterScale > 0.8 && Math.random() < 0.35) {
+      distortScreen();
+    }
+
+    if (monsterScale > 1.15 && Math.random() < 0.5) {
+      distortScreen();
+    }
+
+    /*
+      Too big.
+      It gets you.
+    */
+
+    if (monsterScale >= JUMPSCARE_SIZE) {
+      triggerJumpscare();
+    }
+  }
+}
+
+function distortScreen() {
+
+  screen.classList.remove("distort");
+
+  void screen.offsetWidth;
+
+  screen.classList.add("distort");
+
+  setTimeout(() => {
+    screen.classList.remove("distort");
+  }, 230);
+}
+
+function triggerJumpscare() {
+
+  if (jumpscareTriggered) return;
+
+  jumpscareTriggered = true;
+
+  /*
+    Hide the small corner creature.
+  */
+
+  monster.style.opacity = "0";
+
+  /*
+    Hide the normal UI.
+  */
+
+  button.style.visibility = "hidden";
+  warningText.style.visibility = "hidden";
+  emojiElement.style.visibility = "hidden";
+
+  /*
+    Activate full-screen creature.
+  */
+
+  jumpscare.classList.add("active");
+
+  /*
+    After the jumpscare finishes,
+    leave the player staring at static.
+  */
+
+  setTimeout(() => {
+
+    jumpscare.classList.remove("active");
+
+    jumpscare.style.visibility = "hidden";
+
+    screen.classList.remove("creepy");
+
+    button.style.visibility = "visible";
+
+    /*
+      Reset the relic so it can be
+      discovered again.
+    */
+
+    monsterFound = false;
+    monsterScale = 0.35;
+    jumpscareTriggered = false;
+
+    monster.classList.remove("visible");
+    warningText.classList.remove("visible");
+
+    emojiElement.style.visibility = "visible";
+
+  }, 2500);
+}
+
+</script>
+
+</body>
+</html>
